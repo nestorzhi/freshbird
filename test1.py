@@ -15,5 +15,7 @@ while True:
     if color == (75, 219, 106):
         pyautogui.click(120, 600)  # 点击指定位置
     pyautogui.sleep(0.05)  # 等待0.1秒
+
+
 # first commit of main
 # first commit for feature/due-date
