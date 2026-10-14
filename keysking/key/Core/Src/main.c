@@ -94,6 +94,23 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    if(HAL_GPIO_ReadPin(KEY1_GPIO_Port, KEY1_Pin) == GPIO_PIN_RESET)
+    {
+      HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET);
+    }
+    else
+    {
+      HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+    }
+    if(HAL_GPIO_ReadPin(KEY2_GPIO_Port, KEY2_Pin) == GPIO_PIN_RESET)
+    {
+      HAL_Delay(10);
+      if(HAL_GPIO_ReadPin(KEY2_GPIO_Port, KEY2_Pin) == GPIO_PIN_RESET)
+      {
+        HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+      }
+      while(HAL_GPIO_ReadPin(KEY2_GPIO_Port, KEY2_Pin) == GPIO_PIN_RESET);
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
