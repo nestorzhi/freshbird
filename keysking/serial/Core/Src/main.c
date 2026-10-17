@@ -41,14 +41,17 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart2_tx;
+DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
-
+uint8_t ReceiveData[50];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -56,7 +59,50 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	GPIO_PinState state = GPIO_PIN_SET;
+	if(ReceiveData[1] == '0') state = GPIO_PIN_RESET;
+	if(ReceiveData[0] == 'R')
+	{
+		HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, state);
+	}
+	else if(ReceiveData[0] == 'G')
+	{
+		HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, state);
+	}
+	else if(ReceiveData[0] == 'B')
+	{
+		  HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, state);
+	}
+	HAL_UART_Transmit_DMA(&huart2, ReceiveData, 2);
+	HAL_UART_Receive_DMA(huart, ReceiveData, 2);
+}
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+	if(huart == &huart2)
+	{
+		HAL_UART_Transmit_DMA(&huart2, ReceiveData, Size);
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, ReceiveData, sizeof(ReceiveData));
+		__HAL_DMA_DISABLE_IT(&hdma_usart2_rx,DMA_IT_HT);
+		GPIO_PinState state = GPIO_PIN_SET;
+			if(ReceiveData[1] == '0') state = GPIO_PIN_RESET;
+			if(ReceiveData[0] == 'R')
+			{
+				HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, state);
+			}
+			else if(ReceiveData[0] == 'G')
+			{
+				HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, state);
+			}
+			else if(ReceiveData[0] == 'B')
+			{
+				  HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, state);
+			}
+			HAL_UART_Transmit_DMA(&huart2, ReceiveData, 2);
+			HAL_UART_Receive_DMA(huart, ReceiveData, 2);
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -88,33 +134,22 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 //  char message[] = "Hello world";
-  uint8_t ReceiveData[2];
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, ReceiveData, sizeof(ReceiveData));
+  __HAL_DMA_DISABLE_IT(&hdma_usart2_rx,DMA_IT_HT);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_UART_Receive(&huart2, ReceiveData, 2, HAL_MAX_DELAY);
+//	  HAL_UART_Receive(&huart2, ReceiveData, 2, HAL_MAX_DELAY);
 
-	  HAL_UART_Transmit(&huart2, ReceiveData, 2, 100);
-	  GPIO_PinState state = GPIO_PIN_SET;
-	  if(ReceiveData[1] == '0') state = GPIO_PIN_RESET;
-	  if(ReceiveData[0] == 'R')
-	  {
-		  HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, state);
-	  }
-	  else if(ReceiveData[0] == 'G')
-	  {
-		  HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, state);
-	  }
-	  else if(ReceiveData[0] == 'B')
-	  {
-	  	  HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, state);
-	  }
+//	  HAL_UART_Transmit(&huart2, ReceiveData, 2, 100);
+
 //	  HAL_Delay(1000);
     /* USER CODE END WHILE */
 
@@ -189,6 +224,25 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 2 */
 
   /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+  /* DMA1_Channel7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
 
 }
 
