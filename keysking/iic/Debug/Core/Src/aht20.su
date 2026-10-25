@@ -1,0 +1,5 @@
+../Core/Src/aht20.c:15:6:AHT20_Init	24	static
+../Core/Src/aht20.c:27:6:AHT20_Read	40	static
+../Core/Src/aht20.c:47:6:AHT20_Meature	8	static
+../Core/Src/aht20.c:52:6:AHT20_Get	8	static
+../Core/Src/aht20.c:56:6:AHT20_Analysis	24	static
